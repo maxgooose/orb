@@ -1,0 +1,53 @@
+# ORB Configuration
+# Copy to config.yaml and fill in your values
+
+# Claude API
+claude:
+  api_key: "sk-ant-..."
+  model: "claude-sonnet-4-20250514"
+
+# Audio settings
+audio:
+  sample_rate: 16000
+  chunk_size: 1024
+  silence_threshold: 500      # RMS below this = silence
+  silence_timeout_sec: 30     # Seconds of silence before "lonely" trigger
+  record_seconds: 3           # Audio window for emotion detection
+
+# Emotion detection
+emotion:
+  # Pitch thresholds (Hz) - tune for your user
+  sad_pitch_max: 150
+  happy_pitch_min: 200
+  energy_threshold: 0.3       # Normalized energy, below = low mood
+
+# Hardware pins (BCM numbering)
+motors:
+  left_forward: 17
+  left_backward: 27
+  right_forward: 22
+  right_backward: 23
+  enable_left: 12
+  enable_right: 13
+  speed: 60                   # PWM duty cycle (0-100)
+
+leds:
+  pin: 18
+  count: 16
+  brightness: 0.5
+
+imu:
+  i2c_address: 0x68
+
+speaker:
+  engine: "pyttsx3"           # "pyttsx3" (offline) or "elevenlabs"
+  elevenlabs_key: ""
+  voice_id: ""
+  volume: 0.7
+
+# Behavior
+behavior:
+  approach_distance_sec: 3    # How long to roll toward user
+  celebration_spins: 2        # Spins on happy detection
+  nudge_duration_sec: 0.5     # Brief nudge movement
+  mood_history_size: 10       # Number of recent moods to track
