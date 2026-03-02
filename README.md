@@ -60,8 +60,13 @@ cp config.example.yaml config.yaml
 
 ### Run
 ```bash
-# Full system
+# Full system (on Raspberry Pi with hardware)
 python -m orb.main
+
+# Demo mode (no hardware required — works on any machine)
+python -m orb.demo                # Full emotional arc simulation
+python -m orb.demo --mood sad     # Single mood test
+python -m orb.demo --interactive  # Pick moods manually
 
 # Individual modules (for testing)
 python -m orb.audio.listener      # Test microphone

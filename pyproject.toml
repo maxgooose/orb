@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orb-companion"
+version = "0.1.0"
+description = "Emotional companion ball — detects mood via voice tone, responds with movement, light, and comfort."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Hamza Harb"},
+    {name = "Kaiyuan Duan"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "pyyaml>=6.0",
+    "anthropic>=0.18.0",
+]
+
+[project.optional-dependencies]
+pi = [
+    "pyaudio>=0.2.14",
+    "librosa>=0.10.0",
+    "RPi.GPIO>=0.7.1",
+    "adafruit-circuitpython-neopixel>=6.3",
+    "adafruit-circuitpython-mpu6050>=1.2",
+    "pyttsx3>=2.90",
+    "smbus2>=0.4.0",
+    "numpy>=1.24",
+    "soundfile>=0.12",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.scripts]
+orb = "orb.main:main"
+orb-demo = "orb.demo:main"
+
+[tool.setuptools.packages.find]
+include = ["orb*"]
