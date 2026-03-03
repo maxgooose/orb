@@ -1,4 +1,4 @@
-# ORB — Emotional Companion Ball 🔮
+# ORB — Emotional Companion Ball
 
 A rolling robot ball that detects your emotional state through voice tone and physically responds with movement, light, and comfort messages — without being asked.
 
