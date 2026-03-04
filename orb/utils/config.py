@@ -5,6 +5,11 @@ from pathlib import Path
 
 _config = None
 
+def reset():
+    """Reset cached config (useful for testing)."""
+    global _config
+    _config = None
+
 def load_config(path: str = None) -> dict:
     """Load YAML config. Searches: explicit path → ORB_CONFIG env → ./config.yaml"""
     global _config
@@ -25,12 +30,12 @@ def load_config(path: str = None) -> dict:
                 break
 
     if path is None or not Path(path).exists():
-        raise FileNotFoundError(
-            "No config.yaml found. Copy config.example.yaml → config.yaml and fill in your values."
-        )
+        # No config file — use empty dict so get() defaults work
+        _config = {}
+        return _config
 
     with open(path, "r") as f:
-        _config = yaml.safe_load(f)
+        _config = yaml.safe_load(f) or {}
     return _config
 
 

@@ -13,6 +13,14 @@ Usage:
 """
 
 import argparse
+import io
+import os
+
+# Ensure UTF-8 output on Windows
+if os.name == 'nt':
+    import sys as _sys
+    _sys.stdout = io.TextIOWrapper(_sys.stdout.buffer, encoding='utf-8', errors='replace')
+    _sys.stderr = io.TextIOWrapper(_sys.stderr.buffer, encoding='utf-8', errors='replace')
 import time
 import random
 import sys
