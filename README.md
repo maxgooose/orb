@@ -1,5 +1,7 @@
 # ORB — Emotional Companion Ball
 
+[![CI](https://github.com/maxgooose/orb/actions/workflows/ci.yml/badge.svg)](https://github.com/maxgooose/orb/actions/workflows/ci.yml)
+
 A rolling robot ball that detects your emotional state through voice tone and physically responds with movement, light, and comfort messages — without being asked.
 
 **Team:** Hamza Harb & Kaiyuan Duan (ORB Robotics)  
