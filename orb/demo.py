@@ -109,25 +109,26 @@ def add_noise(features: dict) -> dict:
 
 
 def classify_mood(features: dict) -> tuple[str, float]:
-    """Simplified classifier matching the real one's logic."""
-    energy = features.get('energy', 0)
-    pitch = features.get('pitch_mean', 0)
-    pitch_var = features.get('pitch_std', 0)
-    zcr = features.get('zcr', 0)
+    """Use the real classifier — single source of truth."""
+    try:
+        from orb.emotion.classifier import classify
+        return classify(features)
+    except ImportError:
+        # Fallback if run outside package context
+        energy = features.get('energy', 0)
+        pitch = features.get('pitch_mean', 0)
+        pitch_var = features.get('pitch_std', 0)
+        zcr = features.get('zcr', 0)
 
-    if energy < 0.03:
-        return 'silent', 0.95
-
-    if pitch < 150 and energy < 0.3:
-        return 'sad', 0.7 + min(0.25, (150 - pitch) / 200)
-
-    if pitch > 200 and energy > 0.5 and pitch_var > 25:
-        return 'happy', 0.65 + min(0.3, energy * 0.3)
-
-    if energy > 0.55 and zcr > 0.08:
-        return 'stressed', 0.6 + min(0.3, zcr * 2)
-
-    return 'neutral', 0.5
+        if energy < 0.03:
+            return 'silent', 0.95
+        if pitch < 150 and energy < 0.3:
+            return 'sad', 0.7 + min(0.25, (150 - pitch) / 200)
+        if pitch > 200 and energy > 0.5 and pitch_var > 25:
+            return 'happy', 0.65 + min(0.3, energy * 0.3)
+        if energy > 0.55 and zcr > 0.08:
+            return 'stressed', 0.6 + min(0.3, zcr * 2)
+        return 'neutral', 0.5
 
 
 def display_response(mood: str, confidence: float, features: dict, cycle: int):

@@ -65,7 +65,11 @@ cp config.example.yaml config.yaml
 # Full system (on Raspberry Pi with hardware)
 python -m orb.main
 
-# Demo mode (no hardware required — works on any machine)
+# Web Simulator (no hardware — real mic input, visual ORB)
+# Open simulator/index.html in any browser
+# Uses Web Audio API for real-time emotion detection from your microphone
+
+# Terminal Demo (no hardware required — works on any machine)
 python -m orb.demo                # Full emotional arc simulation
 python -m orb.demo --mood sad     # Single mood test
 python -m orb.demo --interactive  # Pick moods manually
@@ -108,6 +112,8 @@ orb/
 │   ├── test_classifier.py
 │   ├── test_brain.py
 │   └── test_motors.py
+├── simulator/
+│   └── index.html          # Web-based visual simulator (real mic input)
 ├── config.example.yaml
 ├── requirements.txt
 ├── PROPOSAL.md

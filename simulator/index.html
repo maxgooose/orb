@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORB — Emotional Companion Simulator</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0a0a0f;
+  color: #e8e8ff;
+  font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The ORB */
+.orb-container {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  transition: transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.orb {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.15), transparent 60%),
+              radial-gradient(circle at 50% 50%, var(--orb-color, #e8e8ff), transparent);
+  box-shadow: 0 0 60px var(--orb-glow, rgba(232, 232, 255, 0.3)),
+              0 0 120px var(--orb-glow-outer, rgba(232, 232, 255, 0.1)),
+              inset 0 0 40px rgba(255, 255, 255, 0.05);
+  transition: box-shadow 1s ease, background 1s ease;
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+
+.orb.celebrating {
+  animation: spin 0.8s ease-in-out;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.1); }
+  50% { transform: rotate(180deg) scale(1); }
+  75% { transform: rotate(270deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.orb.nudging {
+  animation: nudge 0.6s ease-in-out;
+}
+
+@keyframes nudge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* Floor reflection */
+.floor-reflection {
+  width: 180px;
+  height: 30px;
+  margin-top: 20px;
+  border-radius: 50%;
+  background: var(--orb-glow, rgba(232, 232, 255, 0.15));
+  filter: blur(15px);
+  opacity: 0.4;
+  transition: background 1s ease;
+}
+
+/* Speech bubble */
+.speech {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 10px 18px;
+  font-size: 15px;
+  color: #e8e8ff;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.speech.visible {
+  opacity: 1;
+}
+
+/* Status panel */
+.status {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px 28px;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  opacity: 0.5;
+}
+
+.status-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Mic button */
+.mic-btn {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e8e8ff;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.mic-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.mic-btn.active {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  animation: mic-pulse 2s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.2); }
+  50% { box-shadow: 0 0 0 12px rgba(74, 222, 128, 0); }
+}
+
+/* Audio meter */
+.meter {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+}
+
+.meter-bar {
+  width: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  transition: height 0.1s ease, background 0.3s ease;
+}
+
+/* Title */
+.title {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  opacity: 0.3;
+}
+
+/* Mood history trail */
+.mood-trail {
+  position: fixed;
+  top: 100px;
+  left: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mood-dot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  opacity: 0.4;
+}
+
+.mood-dot .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Instruction */
+.instruction {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  opacity: 0.3;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="title">ORB</div>
+
+<button class="mic-btn" id="micBtn" title="Toggle microphone">🎤</button>
+
+<div class="meter" id="meter"></div>
+
+<div class="mood-trail" id="moodTrail"></div>
+
+<div class="scene">
+  <div class="orb-container" id="orbContainer">
+    <div class="speech" id="speech"></div>
+    <div class="orb" id="orb"></div>
+  </div>
+  <div class="floor-reflection" id="reflection"></div>
+</div>
+
+<div class="instruction" id="instruction">Click the microphone to begin</div>
+
+<div class="status">
+  <div class="status-item">
+    <span class="status-label">Mood</span>
+    <span class="status-value" id="moodDisplay">—</span>
+  </div>
+  <div class="status-item">
+    <span class="status-label">Confidence</span>
+    <span class="status-value" id="confDisplay">—</span>
+  </div>
+  <div class="status-item">
+    <span class="status-label">Pitch</span>
+    <span class="status-value" id="pitchDisplay">—</span>
+  </div>
+  <div class="status-item">
+    <span class="status-label">Energy</span>
+    <span class="status-value" id="energyDisplay">—</span>
+  </div>
+  <div class="status-item">
+    <span class="status-label">Trend</span>
+    <span class="status-value" id="trendDisplay">—</span>
+  </div>
+</div>
+
+<script>
+// ── ORB Simulator ──────────────────────────────────────────────
+// Real-time emotion detection from microphone → visual response
+
+const MOOD_COLORS = {
+  sad:      { color: '#FFB347', glow: 'rgba(255,179,71,0.4)', outer: 'rgba(255,179,71,0.15)' },
+  happy:    { color: '#00FF88', glow: 'rgba(0,255,136,0.4)',  outer: 'rgba(0,255,136,0.15)' },
+  stressed: { color: '#4A90D9', glow: 'rgba(74,144,217,0.4)', outer: 'rgba(74,144,217,0.15)' },
+  neutral:  { color: '#E8E8FF', glow: 'rgba(232,232,255,0.3)',outer: 'rgba(232,232,255,0.1)' },
+  silent:   { color: '#FFFFFF', glow: 'rgba(255,255,255,0.2)',outer: 'rgba(255,255,255,0.08)' },
+};
+
+const MOOD_MESSAGES = {
+  sad:      ["Hey. I'm here.", "Rough day?", "I'm not going anywhere.", "Take your time."],
+  happy:    ["", "", ""],  // No speech, just celebration
+  stressed: ["", "", ""],  // Quiet presence
+  neutral:  ["", ""],
+  silent:   ["Still here.", ""],
+};
+
+const MOOD_EMOJI = { sad: '😢', happy: '😊', stressed: '😰', neutral: '😐', silent: '😶' };
+
+// State
+let audioCtx, analyser, micStream, dataArray, freqArray;
+let isListening = false;
+let moodHistory = [];
+let silenceStart = Date.now();
+let lastMood = 'neutral';
+let lastSpeechTime = 0;
+let analysisInterval;
+
+// DOM
+const orb = document.getElementById('orb');
+const orbContainer = document.getElementById('orbContainer');
+const reflection = document.getElementById('reflection');
+const speech = document.getElementById('speech');
+const micBtn = document.getElementById('micBtn');
+const meter = document.getElementById('meter');
+const instruction = document.getElementById('instruction');
+
+// Build meter bars
+for (let i = 0; i < 12; i++) {
+  const bar = document.createElement('div');
+  bar.className = 'meter-bar';
+  bar.style.height = '4px';
+  meter.appendChild(bar);
+}
+
+// ── Audio Setup ────────────────────────────────────────────────
+
+async function startMic() {
+  try {
+    audioCtx = new AudioContext({ sampleRate: 16000 });
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const source = audioCtx.createMediaStreamSource(micStream);
+
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.8;
+    source.connect(analyser);
+
+    dataArray = new Float32Array(analyser.fftSize);
+    freqArray = new Uint8Array(analyser.frequencyBinCount);
+
+    isListening = true;
+    micBtn.classList.add('active');
+    instruction.textContent = 'Speak naturally — ORB is listening';
+
+    // Run analysis every 500ms
+    analysisInterval = setInterval(analyzeAudio, 500);
+    updateMeter();
+  } catch (e) {
+    instruction.textContent = 'Microphone access denied';
+    console.error(e);
+  }
+}
+
+function stopMic() {
+  isListening = false;
+  micBtn.classList.remove('active');
+  instruction.textContent = 'Click the microphone to begin';
+  if (micStream) micStream.getTracks().forEach(t => t.stop());
+  if (analysisInterval) clearInterval(analysisInterval);
+  if (audioCtx) audioCtx.close();
+}
+
+micBtn.addEventListener('click', () => {
+  if (isListening) stopMic();
+  else startMic();
+});
+
+// ── Audio Analysis ─────────────────────────────────────────────
+
+function analyzeAudio() {
+  if (!analyser) return;
+
+  analyser.getFloatTimeDomainData(dataArray);
+  analyser.getByteFrequencyData(freqArray);
+
+  const features = extractFeatures(dataArray, freqArray);
+  const [mood, confidence] = classifyMood(features);
+
+  // Update displays
+  document.getElementById('moodDisplay').textContent = `${MOOD_EMOJI[mood]} ${mood}`;
+  document.getElementById('confDisplay').textContent = `${Math.round(confidence * 100)}%`;
+  document.getElementById('pitchDisplay').textContent = features.pitch > 0 ? `${Math.round(features.pitch)} Hz` : '—';
+  document.getElementById('energyDisplay').textContent = `${Math.round(features.energy * 100)}%`;
+
+  // Track history
+  if (mood !== 'silent' || (mood === 'silent' && (Date.now() - silenceStart > 15000))) {
+    moodHistory.push({ mood, confidence, time: Date.now() });
+    if (moodHistory.length > 20) moodHistory.shift();
+  }
+
+  const trend = getTrend();
+  document.getElementById('trendDisplay').textContent = trend === 'improving' ? '↗ up' : trend === 'declining' ? '↘ down' : '→ stable';
+
+  // Update mood trail
+  updateMoodTrail(mood, confidence);
+
+  // Respond
+  respondToMood(mood, confidence);
+
+  if (mood !== 'silent') silenceStart = Date.now();
+  lastMood = mood;
+}
+
+function extractFeatures(timeDomain, freqDomain) {
+  // RMS energy
+  let sumSq = 0;
+  for (let i = 0; i < timeDomain.length; i++) sumSq += timeDomain[i] ** 2;
+  const rms = Math.sqrt(sumSq / timeDomain.length);
+  const energy = Math.min(rms * 8, 1.0);
+
+  // Zero-crossing rate
+  let zcr = 0;
+  for (let i = 1; i < timeDomain.length; i++) {
+    if ((timeDomain[i] >= 0) !== (timeDomain[i - 1] >= 0)) zcr++;
+  }
+  zcr /= timeDomain.length;
+
+  // Pitch estimation via autocorrelation
+  const pitch = estimatePitch(timeDomain, 16000);
+
+  // Spectral centroid from frequency data
+  let weightedSum = 0, totalMag = 0;
+  for (let i = 0; i < freqDomain.length; i++) {
+    const freq = i * 16000 / (freqDomain.length * 2);
+    weightedSum += freq * freqDomain[i];
+    totalMag += freqDomain[i];
+  }
+  const spectralCentroid = totalMag > 0 ? weightedSum / totalMag : 0;
+
+  // Speaking rate estimate from energy envelope peaks
+  const speakingRate = estimateSpeakingRate(timeDomain, 16000);
+
+  // Pitch variability (rough estimate from spectral spread)
+  let pitchStd = 0;
+  if (pitch > 0) {
+    // Use spectral spread as proxy
+    let spreadSum = 0;
+    for (let i = 0; i < freqDomain.length; i++) {
+      const freq = i * 16000 / (freqDomain.length * 2);
+      spreadSum += freqDomain[i] * (freq - spectralCentroid) ** 2;
+    }
+    pitchStd = totalMag > 0 ? Math.sqrt(spreadSum / totalMag) / 30 : 0;
+  }
+
+  return { energy, zcr, pitch, pitchStd, spectralCentroid, speakingRate };
+}
+
+function estimatePitch(buffer, sr) {
+  // Autocorrelation pitch detection
+  const minLag = Math.floor(sr / 500); // 500Hz max
+  const maxLag = Math.floor(sr / 60);  // 60Hz min
+
+  if (maxLag >= buffer.length) return 0;
+
+  let bestCorr = 0, bestLag = 0;
+  for (let lag = minLag; lag < Math.min(maxLag, buffer.length / 2); lag++) {
+    let corr = 0;
+    for (let i = 0; i < buffer.length - lag; i++) {
+      corr += buffer[i] * buffer[i + lag];
+    }
+    if (corr > bestCorr) {
+      bestCorr = corr;
+      bestLag = lag;
+    }
+  }
+
+  if (bestLag === 0) return 0;
+
+  // Check if correlation is strong enough
+  let autoCorr0 = 0;
+  for (let i = 0; i < buffer.length; i++) autoCorr0 += buffer[i] ** 2;
+  if (bestCorr / autoCorr0 < 0.2) return 0;
+
+  return sr / bestLag;
+}
+
+function estimateSpeakingRate(buffer, sr) {
+  const frameLen = Math.floor(0.025 * sr);
+  const hop = Math.floor(0.010 * sr);
+  const nFrames = Math.floor((buffer.length - frameLen) / hop);
+  if (nFrames < 3) return 0;
+
+  const envelope = [];
+  for (let i = 0; i < nFrames; i++) {
+    let sum = 0;
+    const start = i * hop;
+    for (let j = start; j < start + frameLen && j < buffer.length; j++) {
+      sum += buffer[j] ** 2;
+    }
+    envelope.push(Math.sqrt(sum / frameLen));
+  }
+
+  const mean = envelope.reduce((a, b) => a + b, 0) / envelope.length;
+  let peaks = 0;
+  for (let i = 1; i < envelope.length - 1; i++) {
+    if (envelope[i] > envelope[i-1] && envelope[i] > envelope[i+1] && envelope[i] > mean) peaks++;
+  }
+
+  const duration = buffer.length / sr;
+  return duration > 0 ? peaks / duration : 0;
+}
+
+// ── Emotion Classifier (mirrors Python classifier.py) ──────────
+
+function classifyMood(features) {
+  const { energy, pitch, pitchStd, zcr, speakingRate } = features;
+
+  // No voice
+  if (energy < 0.05 || pitch === 0) return ['silent', 0.9];
+
+  const scores = { sad: 0, happy: 0, stressed: 0, neutral: 0.3 };
+
+  // Sad
+  if (pitch < 150) scores.sad += 0.3;
+  if (energy < 0.3) scores.sad += 0.3;
+  if (speakingRate < 2.0) scores.sad += 0.2;
+  if (pitchStd < 20) scores.sad += 0.2;
+
+  // Happy
+  if (pitch > 200) scores.happy += 0.3;
+  if (energy > 0.45) scores.happy += 0.2;
+  if (speakingRate > 4.0) scores.happy += 0.2;
+  if (pitchStd > 40) scores.happy += 0.3;
+
+  // Stressed
+  if (energy > 0.45 && pitch < 200) scores.stressed += 0.3;
+  if (speakingRate > 5.0) scores.stressed += 0.2;
+  if (zcr > 0.15) scores.stressed += 0.2;
+  if (pitchStd > 50 && energy > 0.3) scores.stressed += 0.3;
+
+  let bestMood = 'neutral', bestScore = 0;
+  for (const [mood, score] of Object.entries(scores)) {
+    if (score > bestScore) { bestMood = mood; bestScore = score; }
+  }
+
+  if (bestScore < 0.3) { bestMood = 'neutral'; bestScore = 0.5; }
+  return [bestMood, Math.min(bestScore, 1.0)];
+}
+
+// ── Trend ──────────────────────────────────────────────────────
+
+function getTrend() {
+  const scored = moodHistory.filter(m => m.mood !== 'silent').slice(-8);
+  if (scored.length < 4) return 'stable';
+
+  const moodScore = { sad: -2, stressed: -1, neutral: 1, happy: 2 };
+  const half = Math.floor(scored.length / 2);
+  const first = scored.slice(0, half).reduce((s, m) => s + (moodScore[m.mood] || 0), 0) / half;
+  const second = scored.slice(half).reduce((s, m) => s + (moodScore[m.mood] || 0), 0) / (scored.length - half);
+
+  if (second - first > 0.5) return 'improving';
+  if (second - first < -0.5) return 'declining';
+  return 'stable';
+}
+
+// ── Visual Response ────────────────────────────────────────────
+
+function respondToMood(mood, confidence) {
+  const colors = MOOD_COLORS[mood];
+
+  // Update orb colors
+  orb.style.setProperty('--orb-color', colors.color);
+  orb.style.setProperty('--orb-glow', colors.glow);
+  orb.style.setProperty('--orb-glow-outer', colors.outer);
+  reflection.style.background = colors.glow;
+
+  // Movement
+  if (mood === 'sad') {
+    // Roll toward (translate down = closer to viewer)
+    orbContainer.style.transform = 'translateY(20px) scale(1.05)';
+  } else if (mood === 'stressed') {
+    // Back away
+    orbContainer.style.transform = 'translateY(-15px) scale(0.95)';
+  } else if (mood === 'happy' && lastMood !== 'happy') {
+    // Celebrate spin
+    orb.classList.remove('celebrating');
+    void orb.offsetWidth; // reflow
+    orb.classList.add('celebrating');
+    orbContainer.style.transform = 'scale(1.08)';
+    setTimeout(() => orb.classList.remove('celebrating'), 800);
+  } else if (mood === 'silent' && Date.now() - silenceStart > 15000) {
+    // Nudge
+    orb.classList.remove('nudging');
+    void orb.offsetWidth;
+    orb.classList.add('nudging');
+    setTimeout(() => orb.classList.remove('nudging'), 600);
+    orbContainer.style.transform = 'scale(1)';
+  } else {
+    orbContainer.style.transform = 'scale(1)';
+  }
+
+  // Speech (throttled)
+  const now = Date.now();
+  if (mood !== lastMood && now - lastSpeechTime > 5000) {
+    const messages = MOOD_MESSAGES[mood];
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+    if (msg) {
+      speech.textContent = msg;
+      speech.classList.add('visible');
+      lastSpeechTime = now;
+      setTimeout(() => speech.classList.remove('visible'), 4000);
+    }
+  }
+}
+
+// ── Meter Visualization ────────────────────────────────────────
+
+function updateMeter() {
+  if (!isListening || !analyser) return;
+
+  analyser.getByteFrequencyData(freqArray);
+  const bars = meter.querySelectorAll('.meter-bar');
+  const binSize = Math.floor(freqArray.length / bars.length);
+
+  bars.forEach((bar, i) => {
+    let sum = 0;
+    for (let j = 0; j < binSize; j++) sum += freqArray[i * binSize + j];
+    const avg = sum / binSize;
+    const height = Math.max(4, (avg / 255) * 40);
+    bar.style.height = `${height}px`;
+    bar.style.background = avg > 100 ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.2)';
+  });
+
+  requestAnimationFrame(updateMeter);
+}
+
+// ── Mood Trail ─────────────────────────────────────────────────
+
+function updateMoodTrail(mood, confidence) {
+  const trail = document.getElementById('moodTrail');
+  const dot = document.createElement('div');
+  dot.className = 'mood-dot';
+  dot.innerHTML = `<span class="dot" style="background:${MOOD_COLORS[mood].color}"></span>
+    <span>${mood} ${Math.round(confidence*100)}%</span>`;
+
+  trail.appendChild(dot);
+  if (trail.children.length > 10) trail.removeChild(trail.firstChild);
+
+  // Fade older dots
+  Array.from(trail.children).forEach((child, i, arr) => {
+    child.style.opacity = 0.2 + (i / arr.length) * 0.6;
+  });
+}
+</script>
+
+</body>
+</html>
