@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>ORB — Emotional Companion Simulator</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -146,18 +146,24 @@ body {
   font-weight: 600;
 }
 
-/* Mic button */
-.mic-btn {
+/* Buttons row */
+.controls {
   position: fixed;
   top: 30px;
   right: 30px;
-  width: 56px;
-  height: 56px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.ctrl-btn {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.05);
   color: #e8e8ff;
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -165,9 +171,20 @@ body {
   transition: all 0.3s ease;
 }
 
-.mic-btn:hover {
+.ctrl-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.3);
+}
+
+.ctrl-btn.active {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.ctrl-btn.demo-active {
+  border-color: #FFB347;
+  background: rgba(255, 179, 71, 0.1);
+  animation: mic-pulse 2s ease-in-out infinite;
 }
 
 .mic-btn.active {
@@ -244,6 +261,198 @@ body {
   font-size: 13px;
   opacity: 0.3;
   text-align: center;
+  max-width: 90vw;
+}
+
+/* Demo step label */
+.demo-label {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 120px);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  text-align: center;
+  max-width: 80vw;
+  pointer-events: none;
+}
+
+.demo-label.visible {
+  opacity: 0.7;
+}
+
+/* End card */
+.end-card {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10, 10, 15, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.5s ease;
+  z-index: 50;
+}
+
+.end-card.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.end-card h1 {
+  font-size: clamp(24px, 5vw, 48px);
+  font-weight: 300;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.end-card p {
+  font-size: clamp(14px, 2.5vw, 20px);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* Info panel */
+.info-panel {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10, 10, 15, 0.92);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 100;
+}
+
+.info-panel.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.info-content {
+  max-width: 520px;
+  width: 90vw;
+  padding: 40px;
+}
+
+.info-content h2 {
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+}
+
+.info-content .subtitle {
+  font-size: 13px;
+  opacity: 0.4;
+  letter-spacing: 1px;
+  margin-bottom: 32px;
+}
+
+.info-section {
+  margin-bottom: 24px;
+}
+
+.info-section h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.4;
+  margin-bottom: 8px;
+}
+
+.info-section p, .info-section li {
+  font-size: 14px;
+  line-height: 1.7;
+  opacity: 0.75;
+}
+
+.info-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.info-section li::before {
+  content: '›';
+  margin-right: 8px;
+  opacity: 0.4;
+}
+
+.info-bom {
+  display: inline-block;
+  background: rgba(255, 179, 71, 0.15);
+  border: 1px solid rgba(255, 179, 71, 0.3);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #FFB347;
+  margin-top: 4px;
+}
+
+.info-shortcuts {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.shortcut {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  opacity: 0.4;
+}
+
+.shortcut kbd {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.info-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  font-size: 12px;
+  opacity: 0.3;
+  letter-spacing: 1px;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .orb-container { width: 160px; height: 160px; }
+  .floor-reflection { width: 130px; }
+  .status { gap: 14px; padding: 10px 18px; flex-wrap: wrap; justify-content: center; border-radius: 12px; }
+  .status-label { font-size: 9px; }
+  .status-value { font-size: 13px; }
+  .controls { top: 16px; right: 16px; }
+  .ctrl-btn { width: 40px; height: 40px; font-size: 16px; }
+  .meter { top: 16px; left: 16px; height: 30px; }
+  .title { font-size: 12px; top: 20px; }
+  .mood-trail { top: 70px; left: 16px; }
+  .instruction { bottom: 85px; font-size: 12px; }
+  .speech { font-size: 13px; padding: 8px 14px; }
+  .demo-label { font-size: 14px; }
+}
+
+@media (max-width: 380px) {
+  .orb-container { width: 130px; height: 130px; }
+  .status { gap: 10px; padding: 8px 14px; bottom: 16px; }
+  .controls { gap: 6px; }
+  .ctrl-btn { width: 36px; height: 36px; font-size: 14px; }
 }
 </style>
 </head>
@@ -251,7 +460,12 @@ body {
 
 <div class="title">ORB</div>
 
-<button class="mic-btn" id="micBtn" title="Toggle microphone">🎤</button>
+<div class="controls">
+  <button class="ctrl-btn mic-btn" id="micBtn" title="Toggle microphone (Space)">🎤</button>
+  <button class="ctrl-btn" id="demoBtn" title="Play demo (D)">▶</button>
+  <button class="ctrl-btn" id="infoBtn" title="Project info (I)">ℹ</button>
+  <button class="ctrl-btn" id="fsBtn" title="Fullscreen (F)">⛶</button>
+</div>
 
 <div class="meter" id="meter"></div>
 
@@ -265,7 +479,9 @@ body {
   <div class="floor-reflection" id="reflection"></div>
 </div>
 
-<div class="instruction" id="instruction">Click the microphone to begin</div>
+<div class="demo-label" id="demoLabel"></div>
+
+<div class="instruction" id="instruction">Click 🎤 for live mode · ▶ for demo · ℹ for info</div>
 
 <div class="status">
   <div class="status-item">
@@ -290,9 +506,63 @@ body {
   </div>
 </div>
 
+<!-- Info Panel -->
+<div class="info-panel" id="infoPanel">
+  <div class="info-close">Press <kbd>I</kbd> or <kbd>Esc</kbd> to close</div>
+  <div class="info-content">
+    <h2>🔮 ORB</h2>
+    <div class="subtitle">Emotional Companion Ball · CS291 Spring 2026</div>
+
+    <div class="info-section">
+      <h3>What It Does</h3>
+      <p>A rolling ball that senses your emotional state through voice tone analysis and physically responds — rolling toward you when sad, spinning when happy, backing away when stressed. It doesn't wait for commands. It <em>notices</em>.</p>
+    </div>
+
+    <div class="info-section">
+      <h3>Tech Stack</h3>
+      <ul>
+        <li>Raspberry Pi Zero 2W — on-device control</li>
+        <li>Claude API — AI decision engine</li>
+        <li>Python — audio processing + motor control</li>
+        <li>MEMS microphone — voice tone detection</li>
+        <li>NeoPixel LEDs — mood-mapped color response</li>
+        <li>Pendulum drive — DIY rolling mechanism</li>
+      </ul>
+    </div>
+
+    <div class="info-section">
+      <h3>Bill of Materials</h3>
+      <div class="info-bom">~$79</div>
+    </div>
+
+    <div class="info-section">
+      <h3>Team</h3>
+      <ul>
+        <li>Harb — hardware + software integration</li>
+        <li>Kaiyuan Duan — emotion detection + tuning</li>
+      </ul>
+    </div>
+
+    <div class="info-shortcuts">
+      <div class="shortcut"><kbd>Space</kbd> Mic</div>
+      <div class="shortcut"><kbd>D</kbd> Demo</div>
+      <div class="shortcut"><kbd>I</kbd> Info</div>
+      <div class="shortcut"><kbd>F</kbd> Fullscreen</div>
+      <div class="shortcut"><kbd>Esc</kbd> Close</div>
+    </div>
+  </div>
+</div>
+
+<!-- End Card -->
+<div class="end-card" id="endCard">
+  <h1>ORB doesn't just hear you.</h1>
+  <p>It feels you.</p>
+</div>
+
 <script>
 // ── ORB Simulator ──────────────────────────────────────────────
 // Real-time emotion detection from microphone → visual response
+// + Presentation demo mode
 
 const MOOD_COLORS = {
   sad:      { color: '#FFB347', glow: 'rgba(255,179,71,0.4)', outer: 'rgba(255,179,71,0.15)' },
@@ -304,8 +574,8 @@ const MOOD_COLORS = {
 
 const MOOD_MESSAGES = {
   sad:      ["Hey. I'm here.", "Rough day?", "I'm not going anywhere.", "Take your time."],
-  happy:    ["", "", ""],  // No speech, just celebration
-  stressed: ["", "", ""],  // Quiet presence
+  happy:    ["", "", ""],
+  stressed: ["", "", ""],
   neutral:  ["", ""],
   silent:   ["Still here.", ""],
 };
@@ -320,6 +590,8 @@ let silenceStart = Date.now();
 let lastMood = 'neutral';
 let lastSpeechTime = 0;
 let analysisInterval;
+let demoRunning = false;
+let demoTimeouts = [];
 
 // DOM
 const orb = document.getElementById('orb');
@@ -329,6 +601,12 @@ const speech = document.getElementById('speech');
 const micBtn = document.getElementById('micBtn');
 const meter = document.getElementById('meter');
 const instruction = document.getElementById('instruction');
+const demoBtn = document.getElementById('demoBtn');
+const infoBtn = document.getElementById('infoBtn');
+const fsBtn = document.getElementById('fsBtn');
+const infoPanel = document.getElementById('infoPanel');
+const demoLabel = document.getElementById('demoLabel');
+const endCard = document.getElementById('endCard');
 
 // Build meter bars
 for (let i = 0; i < 12; i++) {
@@ -341,24 +619,20 @@ for (let i = 0; i < 12; i++) {
 // ── Audio Setup ────────────────────────────────────────────────
 
 async function startMic() {
+  if (demoRunning) stopDemo();
   try {
     audioCtx = new AudioContext({ sampleRate: 16000 });
     micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const source = audioCtx.createMediaStreamSource(micStream);
-
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 2048;
     analyser.smoothingTimeConstant = 0.8;
     source.connect(analyser);
-
     dataArray = new Float32Array(analyser.fftSize);
     freqArray = new Uint8Array(analyser.frequencyBinCount);
-
     isListening = true;
     micBtn.classList.add('active');
     instruction.textContent = 'Speak naturally — ORB is listening';
-
-    // Run analysis every 500ms
     analysisInterval = setInterval(analyzeAudio, 500);
     updateMeter();
   } catch (e) {
@@ -370,7 +644,7 @@ async function startMic() {
 function stopMic() {
   isListening = false;
   micBtn.classList.remove('active');
-  instruction.textContent = 'Click the microphone to begin';
+  instruction.textContent = 'Click 🎤 for live mode · ▶ for demo · ℹ for info';
   if (micStream) micStream.getTracks().forEach(t => t.stop());
   if (analysisInterval) clearInterval(analysisInterval);
   if (audioCtx) audioCtx.close();
@@ -381,24 +655,183 @@ micBtn.addEventListener('click', () => {
   else startMic();
 });
 
+// ── Demo Mode ──────────────────────────────────────────────────
+
+const DEMO_SCRIPT = [
+  { delay: 0,     mood: 'neutral', label: 'ORB sits idle, breathing softly...', msg: '' },
+  { delay: 5000,  mood: 'neutral', label: 'Waiting... sensing the room.', msg: '' },
+  { delay: 9000,  mood: 'sad',     label: '😢 Sadness detected in voice tone', msg: "Rough day? I'm right here." },
+  { delay: 15000, mood: 'sad',     label: 'ORB rolls closer, warm amber glow', msg: "I'm not going anywhere." },
+  { delay: 21000, mood: 'happy',   label: '😊 Mood shifts — laughter detected!', msg: '' },
+  { delay: 27000, mood: 'happy',   label: 'ORB celebrates — spins, flashes green', msg: '' },
+  { delay: 33000, mood: 'silent',  label: '😶 Prolonged silence...', msg: '' },
+  { delay: 39000, mood: 'silent',  label: 'ORB nudges gently, pulses light', msg: 'Still here.' },
+  { delay: 45000, mood: 'end',     label: '', msg: '' },
+];
+
+function startDemo() {
+  if (isListening) stopMic();
+  if (demoRunning) stopDemo();
+  demoRunning = true;
+  demoBtn.classList.add('demo-active');
+  demoBtn.textContent = '⏹';
+  instruction.textContent = 'Demo playing...';
+  endCard.classList.remove('visible');
+
+  // Reset orb
+  setOrbMood('neutral');
+  orbContainer.style.transform = 'scale(1)';
+
+  DEMO_SCRIPT.forEach(step => {
+    const t = setTimeout(() => {
+      if (!demoRunning) return;
+      if (step.mood === 'end') {
+        endCard.classList.add('visible');
+        setTimeout(() => { if (demoRunning) stopDemo(); }, 6000);
+        return;
+      }
+      demoRespondToMood(step.mood, step.msg, step.label);
+    }, step.delay);
+    demoTimeouts.push(t);
+  });
+}
+
+function stopDemo() {
+  demoRunning = false;
+  demoBtn.classList.remove('demo-active');
+  demoBtn.textContent = '▶';
+  demoTimeouts.forEach(clearTimeout);
+  demoTimeouts = [];
+  demoLabel.classList.remove('visible');
+  instruction.textContent = 'Click 🎤 for live mode · ▶ for demo · ℹ for info';
+  // Reset
+  setOrbMood('neutral');
+  orbContainer.style.transform = 'scale(1)';
+}
+
+function demoRespondToMood(mood, msg, label) {
+  setOrbMood(mood);
+
+  // Update status displays
+  document.getElementById('moodDisplay').textContent = `${MOOD_EMOJI[mood]} ${mood}`;
+  document.getElementById('confDisplay').textContent = mood === 'neutral' ? '—' : '85%';
+  document.getElementById('pitchDisplay').textContent = mood === 'sad' ? '118 Hz' : mood === 'happy' ? '247 Hz' : '—';
+  document.getElementById('energyDisplay').textContent = mood === 'sad' ? '22%' : mood === 'happy' ? '71%' : mood === 'silent' ? '2%' : '—';
+  document.getElementById('trendDisplay').textContent = mood === 'happy' ? '↗ up' : mood === 'sad' ? '↘ down' : '→ stable';
+
+  // Movement
+  if (mood === 'sad') {
+    orbContainer.style.transform = 'translateY(20px) scale(1.05)';
+  } else if (mood === 'happy') {
+    orb.classList.remove('celebrating');
+    void orb.offsetWidth;
+    orb.classList.add('celebrating');
+    orbContainer.style.transform = 'scale(1.08)';
+    setTimeout(() => orb.classList.remove('celebrating'), 800);
+  } else if (mood === 'silent') {
+    orb.classList.remove('nudging');
+    void orb.offsetWidth;
+    orb.classList.add('nudging');
+    setTimeout(() => orb.classList.remove('nudging'), 600);
+    orbContainer.style.transform = 'scale(1)';
+  } else {
+    orbContainer.style.transform = 'scale(1)';
+  }
+
+  // Speech
+  if (msg) {
+    speech.textContent = msg;
+    speech.classList.add('visible');
+    setTimeout(() => speech.classList.remove('visible'), 4000);
+  } else {
+    speech.classList.remove('visible');
+  }
+
+  // Demo label
+  if (label) {
+    demoLabel.textContent = label;
+    demoLabel.classList.add('visible');
+    setTimeout(() => demoLabel.classList.remove('visible'), 4500);
+  }
+
+  // Mood trail
+  updateMoodTrail(mood, 0.85);
+}
+
+function setOrbMood(mood) {
+  const colors = MOOD_COLORS[mood] || MOOD_COLORS.neutral;
+  orb.style.setProperty('--orb-color', colors.color);
+  orb.style.setProperty('--orb-glow', colors.glow);
+  orb.style.setProperty('--orb-glow-outer', colors.outer);
+  reflection.style.background = colors.glow;
+}
+
+demoBtn.addEventListener('click', () => {
+  if (demoRunning) stopDemo();
+  else startDemo();
+});
+
+// ── Info Panel ─────────────────────────────────────────────────
+
+infoBtn.addEventListener('click', () => toggleInfo());
+
+function toggleInfo() {
+  infoPanel.classList.toggle('visible');
+}
+
+// ── Fullscreen ─────────────────────────────────────────────────
+
+fsBtn.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+    fsBtn.textContent = '⛶';
+  } else {
+    document.exitFullscreen();
+    fsBtn.textContent = '⛶';
+  }
+});
+
+// ── Keyboard Shortcuts ─────────────────────────────────────────
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  switch (e.key.toLowerCase()) {
+    case ' ':
+      e.preventDefault();
+      if (isListening) stopMic(); else startMic();
+      break;
+    case 'd':
+      if (demoRunning) stopDemo(); else startDemo();
+      break;
+    case 'i':
+      toggleInfo();
+      break;
+    case 'f':
+      fsBtn.click();
+      break;
+    case 'escape':
+      if (infoPanel.classList.contains('visible')) toggleInfo();
+      else if (endCard.classList.contains('visible')) endCard.classList.remove('visible');
+      else if (demoRunning) stopDemo();
+      break;
+  }
+});
+
 // ── Audio Analysis ─────────────────────────────────────────────
 
 function analyzeAudio() {
   if (!analyser) return;
-
   analyser.getFloatTimeDomainData(dataArray);
   analyser.getByteFrequencyData(freqArray);
-
   const features = extractFeatures(dataArray, freqArray);
   const [mood, confidence] = classifyMood(features);
 
-  // Update displays
   document.getElementById('moodDisplay').textContent = `${MOOD_EMOJI[mood]} ${mood}`;
   document.getElementById('confDisplay').textContent = `${Math.round(confidence * 100)}%`;
   document.getElementById('pitchDisplay').textContent = features.pitch > 0 ? `${Math.round(features.pitch)} Hz` : '—';
   document.getElementById('energyDisplay').textContent = `${Math.round(features.energy * 100)}%`;
 
-  // Track history
   if (mood !== 'silent' || (mood === 'silent' && (Date.now() - silenceStart > 15000))) {
     moodHistory.push({ mood, confidence, time: Date.now() });
     if (moodHistory.length > 20) moodHistory.shift();
@@ -406,35 +839,26 @@ function analyzeAudio() {
 
   const trend = getTrend();
   document.getElementById('trendDisplay').textContent = trend === 'improving' ? '↗ up' : trend === 'declining' ? '↘ down' : '→ stable';
-
-  // Update mood trail
   updateMoodTrail(mood, confidence);
-
-  // Respond
   respondToMood(mood, confidence);
-
   if (mood !== 'silent') silenceStart = Date.now();
   lastMood = mood;
 }
 
 function extractFeatures(timeDomain, freqDomain) {
-  // RMS energy
   let sumSq = 0;
   for (let i = 0; i < timeDomain.length; i++) sumSq += timeDomain[i] ** 2;
   const rms = Math.sqrt(sumSq / timeDomain.length);
   const energy = Math.min(rms * 8, 1.0);
 
-  // Zero-crossing rate
   let zcr = 0;
   for (let i = 1; i < timeDomain.length; i++) {
     if ((timeDomain[i] >= 0) !== (timeDomain[i - 1] >= 0)) zcr++;
   }
   zcr /= timeDomain.length;
 
-  // Pitch estimation via autocorrelation
   const pitch = estimatePitch(timeDomain, 16000);
 
-  // Spectral centroid from frequency data
   let weightedSum = 0, totalMag = 0;
   for (let i = 0; i < freqDomain.length; i++) {
     const freq = i * 16000 / (freqDomain.length * 2);
@@ -442,14 +866,10 @@ function extractFeatures(timeDomain, freqDomain) {
     totalMag += freqDomain[i];
   }
   const spectralCentroid = totalMag > 0 ? weightedSum / totalMag : 0;
-
-  // Speaking rate estimate from energy envelope peaks
   const speakingRate = estimateSpeakingRate(timeDomain, 16000);
 
-  // Pitch variability (rough estimate from spectral spread)
   let pitchStd = 0;
   if (pitch > 0) {
-    // Use spectral spread as proxy
     let spreadSum = 0;
     for (let i = 0; i < freqDomain.length; i++) {
       const freq = i * 16000 / (freqDomain.length * 2);
@@ -462,31 +882,21 @@ function extractFeatures(timeDomain, freqDomain) {
 }
 
 function estimatePitch(buffer, sr) {
-  // Autocorrelation pitch detection
-  const minLag = Math.floor(sr / 500); // 500Hz max
-  const maxLag = Math.floor(sr / 60);  // 60Hz min
-
+  const minLag = Math.floor(sr / 500);
+  const maxLag = Math.floor(sr / 60);
   if (maxLag >= buffer.length) return 0;
 
   let bestCorr = 0, bestLag = 0;
   for (let lag = minLag; lag < Math.min(maxLag, buffer.length / 2); lag++) {
     let corr = 0;
-    for (let i = 0; i < buffer.length - lag; i++) {
-      corr += buffer[i] * buffer[i + lag];
-    }
-    if (corr > bestCorr) {
-      bestCorr = corr;
-      bestLag = lag;
-    }
+    for (let i = 0; i < buffer.length - lag; i++) corr += buffer[i] * buffer[i + lag];
+    if (corr > bestCorr) { bestCorr = corr; bestLag = lag; }
   }
-
   if (bestLag === 0) return 0;
 
-  // Check if correlation is strong enough
   let autoCorr0 = 0;
   for (let i = 0; i < buffer.length; i++) autoCorr0 += buffer[i] ** 2;
   if (bestCorr / autoCorr0 < 0.2) return 0;
-
   return sr / bestLag;
 }
 
@@ -500,9 +910,7 @@ function estimateSpeakingRate(buffer, sr) {
   for (let i = 0; i < nFrames; i++) {
     let sum = 0;
     const start = i * hop;
-    for (let j = start; j < start + frameLen && j < buffer.length; j++) {
-      sum += buffer[j] ** 2;
-    }
+    for (let j = start; j < start + frameLen && j < buffer.length; j++) sum += buffer[j] ** 2;
     envelope.push(Math.sqrt(sum / frameLen));
   }
 
@@ -511,34 +919,26 @@ function estimateSpeakingRate(buffer, sr) {
   for (let i = 1; i < envelope.length - 1; i++) {
     if (envelope[i] > envelope[i-1] && envelope[i] > envelope[i+1] && envelope[i] > mean) peaks++;
   }
-
   const duration = buffer.length / sr;
   return duration > 0 ? peaks / duration : 0;
 }
 
-// ── Emotion Classifier (mirrors Python classifier.py) ──────────
-
 function classifyMood(features) {
   const { energy, pitch, pitchStd, zcr, speakingRate } = features;
-
-  // No voice
   if (energy < 0.05 || pitch === 0) return ['silent', 0.9];
 
   const scores = { sad: 0, happy: 0, stressed: 0, neutral: 0.3 };
 
-  // Sad
   if (pitch < 150) scores.sad += 0.3;
   if (energy < 0.3) scores.sad += 0.3;
   if (speakingRate < 2.0) scores.sad += 0.2;
   if (pitchStd < 20) scores.sad += 0.2;
 
-  // Happy
   if (pitch > 200) scores.happy += 0.3;
   if (energy > 0.45) scores.happy += 0.2;
   if (speakingRate > 4.0) scores.happy += 0.2;
   if (pitchStd > 40) scores.happy += 0.3;
 
-  // Stressed
   if (energy > 0.45 && pitch < 200) scores.stressed += 0.3;
   if (speakingRate > 5.0) scores.stressed += 0.2;
   if (zcr > 0.15) scores.stressed += 0.2;
@@ -548,54 +948,36 @@ function classifyMood(features) {
   for (const [mood, score] of Object.entries(scores)) {
     if (score > bestScore) { bestMood = mood; bestScore = score; }
   }
-
   if (bestScore < 0.3) { bestMood = 'neutral'; bestScore = 0.5; }
   return [bestMood, Math.min(bestScore, 1.0)];
 }
 
-// ── Trend ──────────────────────────────────────────────────────
-
 function getTrend() {
   const scored = moodHistory.filter(m => m.mood !== 'silent').slice(-8);
   if (scored.length < 4) return 'stable';
-
   const moodScore = { sad: -2, stressed: -1, neutral: 1, happy: 2 };
   const half = Math.floor(scored.length / 2);
   const first = scored.slice(0, half).reduce((s, m) => s + (moodScore[m.mood] || 0), 0) / half;
   const second = scored.slice(half).reduce((s, m) => s + (moodScore[m.mood] || 0), 0) / (scored.length - half);
-
   if (second - first > 0.5) return 'improving';
   if (second - first < -0.5) return 'declining';
   return 'stable';
 }
 
-// ── Visual Response ────────────────────────────────────────────
-
 function respondToMood(mood, confidence) {
-  const colors = MOOD_COLORS[mood];
+  setOrbMood(mood);
 
-  // Update orb colors
-  orb.style.setProperty('--orb-color', colors.color);
-  orb.style.setProperty('--orb-glow', colors.glow);
-  orb.style.setProperty('--orb-glow-outer', colors.outer);
-  reflection.style.background = colors.glow;
-
-  // Movement
   if (mood === 'sad') {
-    // Roll toward (translate down = closer to viewer)
     orbContainer.style.transform = 'translateY(20px) scale(1.05)';
   } else if (mood === 'stressed') {
-    // Back away
     orbContainer.style.transform = 'translateY(-15px) scale(0.95)';
   } else if (mood === 'happy' && lastMood !== 'happy') {
-    // Celebrate spin
     orb.classList.remove('celebrating');
-    void orb.offsetWidth; // reflow
+    void orb.offsetWidth;
     orb.classList.add('celebrating');
     orbContainer.style.transform = 'scale(1.08)';
     setTimeout(() => orb.classList.remove('celebrating'), 800);
   } else if (mood === 'silent' && Date.now() - silenceStart > 15000) {
-    // Nudge
     orb.classList.remove('nudging');
     void orb.offsetWidth;
     orb.classList.add('nudging');
@@ -605,7 +987,6 @@ function respondToMood(mood, confidence) {
     orbContainer.style.transform = 'scale(1)';
   }
 
-  // Speech (throttled)
   const now = Date.now();
   if (mood !== lastMood && now - lastSpeechTime > 5000) {
     const messages = MOOD_MESSAGES[mood];
@@ -619,11 +1000,8 @@ function respondToMood(mood, confidence) {
   }
 }
 
-// ── Meter Visualization ────────────────────────────────────────
-
 function updateMeter() {
   if (!isListening || !analyser) return;
-
   analyser.getByteFrequencyData(freqArray);
   const bars = meter.querySelectorAll('.meter-bar');
   const binSize = Math.floor(freqArray.length / bars.length);
@@ -636,11 +1014,8 @@ function updateMeter() {
     bar.style.height = `${height}px`;
     bar.style.background = avg > 100 ? 'rgba(74,222,128,0.6)' : 'rgba(255,255,255,0.2)';
   });
-
   requestAnimationFrame(updateMeter);
 }
-
-// ── Mood Trail ─────────────────────────────────────────────────
 
 function updateMoodTrail(mood, confidence) {
   const trail = document.getElementById('moodTrail');
@@ -648,11 +1023,8 @@ function updateMoodTrail(mood, confidence) {
   dot.className = 'mood-dot';
   dot.innerHTML = `<span class="dot" style="background:${MOOD_COLORS[mood].color}"></span>
     <span>${mood} ${Math.round(confidence*100)}%</span>`;
-
   trail.appendChild(dot);
   if (trail.children.length > 10) trail.removeChild(trail.firstChild);
-
-  // Fade older dots
   Array.from(trail.children).forEach((child, i, arr) => {
     child.style.opacity = 0.2 + (i / arr.length) * 0.6;
   });
