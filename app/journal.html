@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORB — Mood Journal</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050508">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #050508;
+  color: #e8e8ff;
+  font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.header a {
+  color: rgba(255,255,255,0.35);
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 1px;
+  transition: color 0.3s;
+}
+.header a:hover { color: rgba(255,255,255,0.7); }
+
+/* Stats strip */
+.stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 16px 20px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  opacity: 0.35;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.stat-sub {
+  font-size: 11px;
+  opacity: 0.3;
+  margin-top: 4px;
+}
+
+/* Mood distribution bar */
+.mood-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  background: rgba(255,255,255,0.03);
+}
+
+.mood-bar-seg { transition: width 0.5s ease; min-width: 2px; }
+.mood-bar-seg.sad { background: #FFB347; }
+.mood-bar-seg.happy { background: #00FF88; }
+.mood-bar-seg.stressed { background: #4A90D9; }
+.mood-bar-seg.neutral { background: rgba(255,255,255,0.15); }
+.mood-bar-seg.silent { background: rgba(255,255,255,0.06); }
+
+.mood-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Session list */
+.section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.25;
+  margin-bottom: 16px;
+}
+
+.session-list { display: flex; flex-direction: column; gap: 8px; }
+
+.session-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.session-card:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1); }
+
+.session-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.session-date { font-size: 14px; font-weight: 500; }
+.session-mood { font-size: 20px; }
+.session-time { font-size: 11px; opacity: 0.3; }
+
+.session-bar {
+  display: flex;
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.03);
+  margin-top: 10px;
+}
+
+.session-bar-seg { min-width: 1px; }
+.session-bar-seg.sad { background: #FFB347; }
+.session-bar-seg.happy { background: #00FF88; }
+.session-bar-seg.stressed { background: #4A90D9; }
+.session-bar-seg.neutral { background: rgba(255,255,255,0.15); }
+.session-bar-seg.silent { background: rgba(255,255,255,0.06); }
+
+.session-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 11px;
+  opacity: 0.4;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  opacity: 0.2;
+  font-size: 14px;
+}
+
+/* Export button */
+.export-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: #e8e8ff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.5px;
+}
+.export-btn:hover { background: rgba(255,255,255,0.08); }
+
+@media (max-width: 600px) {
+  body { padding: 16px; }
+  .stats { gap: 8px; }
+  .stat-card { padding: 12px 14px; }
+  .stat-value { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔮 Journal</h1>
+  <a href="index.html">← Back to ORB</a>
+</div>
+
+<div class="stats" id="stats"></div>
+<div class="mood-bar" id="moodBar"></div>
+<div class="mood-legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#FFB347"></div>Sad</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#00FF88"></div>Happy</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4A90D9"></div>Stressed</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.3)"></div>Neutral</div>
+</div>
+
+<div class="section-title">Recent Sessions</div>
+<div class="session-list" id="sessionList"></div>
+
+<button class="export-btn" id="exportBtn">Export Data ↓</button>
+
+<script type="module">
+import { getSessions, getSessionEntries, getAllEntries, exportData } from './db.js';
+
+const MOOD_EMOJI = { sad:'😢', happy:'😊', stressed:'😰', neutral:'😐', silent:'😶' };
+const MOOD_COLORS = { sad:'#FFB347', happy:'#00FF88', stressed:'#4A90D9', neutral:'rgba(255,255,255,0.3)', silent:'rgba(255,255,255,0.1)' };
+
+async function render() {
+  const sessions = await getSessions(50);
+  const allEntries = await getAllEntries(30);
+
+  // Stats
+  const totalSessions = sessions.length;
+  const totalEntries = allEntries.length;
+  const moodCounts = {};
+  allEntries.forEach(e => { moodCounts[e.mood] = (moodCounts[e.mood] || 0) + 1; });
+  const dominant = Object.entries(moodCounts)
+    .filter(([m]) => m !== 'silent')
+    .sort((a,b) => b[1] - a[1])[0];
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Sessions</div>
+      <div class="stat-value">${totalSessions}</div>
+      <div class="stat-sub">last 30 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Mood Readings</div>
+      <div class="stat-value">${totalEntries}</div>
+      <div class="stat-sub">total data points</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Dominant Mood</div>
+      <div class="stat-value">${dominant ? MOOD_EMOJI[dominant[0]] + ' ' + dominant[0] : '—'}</div>
+      <div class="stat-sub">${dominant ? Math.round(dominant[1]/Math.max(1,totalEntries)*100) + '% of readings' : 'no data yet'}</div>
+    </div>
+  `;
+
+  // Mood distribution bar
+  const total = Object.values(moodCounts).reduce((a,b) => a+b, 0) || 1;
+  document.getElementById('moodBar').innerHTML = ['sad','happy','stressed','neutral','silent']
+    .filter(m => moodCounts[m])
+    .map(m => `<div class="mood-bar-seg ${m}" style="width:${(moodCounts[m]/total)*100}%"></div>`)
+    .join('');
+
+  // Session list
+  const list = document.getElementById('sessionList');
+  if (sessions.length === 0) {
+    list.innerHTML = '<div class="empty">No sessions yet. Open ORB and start a mic session to begin tracking.</div>';
+    return;
+  }
+
+  list.innerHTML = sessions.map(s => {
+    const start = new Date(s.startTime);
+    const end = s.endTime ? new Date(s.endTime) : null;
+    const duration = end ? Math.round((end - start) / 60000) : '...';
+    const counts = s.moodSummary || {};
+    const total = Object.values(counts).reduce((a,b) => a+b, 0) || 1;
+    const barHtml = ['sad','happy','stressed','neutral','silent']
+      .filter(m => counts[m])
+      .map(m => `<div class="session-bar-seg ${m}" style="width:${(counts[m]/total)*100}%"></div>`)
+      .join('');
+
+    return `
+      <div class="session-card">
+        <div class="session-top">
+          <div>
+            <div class="session-date">${start.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+            <div class="session-time">${start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })} · ${duration} min</div>
+          </div>
+          <div class="session-mood">${MOOD_EMOJI[s.dominantMood] || '😐'}</div>
+        </div>
+        <div class="session-bar">${barHtml}</div>
+        <div class="session-stats">
+          <span>${s.entryCount || 0} readings</span>
+          ${s.dominantMood ? `<span>mostly ${s.dominantMood}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Export
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  const data = await exportData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `orb-mood-export-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+render();
+</script>
+</body>
+</html>
