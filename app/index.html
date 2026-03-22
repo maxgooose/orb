@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>ORB — Emotional Companion Simulator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050508">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>ORB — Emotional Companion</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -263,6 +267,8 @@ canvas#bg { position: fixed; top: 0; left: 0; z-index: 0; }
   <div class="controls">
     <button class="ctrl-btn mic-btn" id="micBtn" title="Toggle microphone (Space)">🎤</button>
     <button class="ctrl-btn" id="demoBtn" title="Play demo (D)">▶</button>
+    <a class="ctrl-btn" href="journal.html" title="Mood Journal (J)" style="text-decoration:none">📓</a>
+    <a class="ctrl-btn" href="analytics.html" title="Analytics (A)" style="text-decoration:none">📊</a>
     <button class="ctrl-btn" id="infoBtn" title="Project info (I)">ℹ</button>
     <button class="ctrl-btn" id="fsBtn" title="Fullscreen (F)">⛶</button>
   </div>
@@ -287,25 +293,30 @@ canvas#bg { position: fixed; top: 0; left: 0; z-index: 0; }
     <div class="info-close">Press <kbd>I</kbd> or <kbd>Esc</kbd> to close</div>
     <div class="info-content">
       <h2>🔮 ORB</h2>
-      <div class="subtitle">Emotional Companion Ball · CS291 Spring 2026</div>
+      <div class="subtitle">Emotional Companion · CS291 Spring 2026</div>
       <div class="info-section">
         <h3>What It Does</h3>
-        <p>A rolling ball that senses your emotional state through voice tone analysis and physically responds — rolling toward you when sad, spinning when happy, backing away when stressed. It doesn't wait for commands. It <em>notices</em>.</p>
+        <p>An AI companion that senses your emotional state through voice tone analysis and responds — comforting you when sad, celebrating when happy, giving space when stressed. It doesn't wait for commands. It <em>notices</em>.</p>
       </div>
       <div class="info-section">
         <h3>Tech Stack</h3>
         <ul>
-          <li>Raspberry Pi Zero 2W — on-device control</li>
+          <li>Three.js — 3D rendering + particle system</li>
+          <li>Web Audio API — real-time voice analysis</li>
           <li>Claude API — AI decision engine</li>
-          <li>Python — audio processing + motor control</li>
-          <li>MEMS microphone — voice tone detection</li>
-          <li>NeoPixel LEDs — mood-mapped color response</li>
-          <li>Pendulum drive — DIY rolling mechanism</li>
+          <li>IndexedDB — mood journal + session history</li>
+          <li>PWA — installable, works offline</li>
+          <li>Custom ML — pitch/energy/cadence classifier</li>
         </ul>
       </div>
       <div class="info-section">
-        <h3>Bill of Materials</h3>
-        <div class="info-bom">~$79</div>
+        <h3>Features</h3>
+        <ul>
+          <li>Real-time voice emotion detection</li>
+          <li>Mood journal with session history</li>
+          <li>Exportable mood data (JSON)</li>
+          <li>Works on any device with a mic</li>
+        </ul>
       </div>
       <div class="info-section">
         <h3>Team</h3>
@@ -317,6 +328,7 @@ canvas#bg { position: fixed; top: 0; left: 0; z-index: 0; }
       <div class="info-shortcuts">
         <div class="shortcut"><kbd>Space</kbd> Mic</div>
         <div class="shortcut"><kbd>D</kbd> Demo</div>
+        <div class="shortcut"><kbd>J</kbd> Journal</div>
         <div class="shortcut"><kbd>I</kbd> Info</div>
         <div class="shortcut"><kbd>F</kbd> Fullscreen</div>
         <div class="shortcut"><kbd>Esc</kbd> Close</div>
@@ -964,6 +976,8 @@ document.addEventListener('keydown', (e) => {
     case ' ': e.preventDefault(); isListening ? stopMic() : startMic(); break;
     case 'd': demoRunning ? stopDemo() : startDemo(); break;
     case 'i': infoPanel.classList.toggle('visible'); break;
+    case 'j': window.location.href = 'journal.html'; break;
+    case 'a': window.location.href = 'analytics.html'; break;
     case 'f': fsBtn.click(); break;
     case 'escape':
       if (infoPanel.classList.contains('visible')) infoPanel.classList.toggle('visible');
@@ -972,6 +986,91 @@ document.addEventListener('keydown', (e) => {
       break;
   }
 });
+
+// ── Session Tracking (IndexedDB) ───────────────────────────────
+// Dynamically import db.js for mood journaling
+let dbModule = null;
+let activeSessionId = null;
+let sessionMoodCounts = {};
+let sessionEntryCount = 0;
+
+async function loadDB() {
+  try {
+    dbModule = await import('./db.js');
+  } catch (e) {
+    console.warn('DB module not available, journal disabled');
+  }
+}
+loadDB();
+
+async function startTrackingSession() {
+  if (!dbModule) return;
+  try {
+    activeSessionId = await dbModule.startSession();
+    sessionMoodCounts = {};
+    sessionEntryCount = 0;
+  } catch (e) { console.warn('Failed to start session:', e); }
+}
+
+async function endTrackingSession() {
+  if (!dbModule || !activeSessionId) return;
+  try {
+    const dominant = Object.entries(sessionMoodCounts)
+      .filter(([m]) => m !== 'silent')
+      .sort((a,b) => b[1] - a[1])[0];
+    await dbModule.endSession(activeSessionId, {
+      moodSummary: sessionMoodCounts,
+      dominantMood: dominant ? dominant[0] : 'neutral',
+      entryCount: sessionEntryCount
+    });
+    activeSessionId = null;
+  } catch (e) { console.warn('Failed to end session:', e); }
+}
+
+async function trackMoodEntry(mood, confidence, features) {
+  if (!dbModule || !activeSessionId) return;
+  try {
+    await dbModule.addEntry(activeSessionId, mood, confidence, features);
+    sessionMoodCounts[mood] = (sessionMoodCounts[mood] || 0) + 1;
+    sessionEntryCount++;
+  } catch (e) { /* silent */ }
+}
+
+// Patch startMic/stopMic to track sessions
+const _origStartMic = startMic;
+startMic = async function() {
+  await _origStartMic();
+  if (isListening) await startTrackingSession();
+};
+
+const _origStopMic = stopMic;
+stopMic = function() {
+  _origStopMic();
+  endTrackingSession();
+};
+
+// Patch analyzeAudio to record entries
+const _origAnalyzeAudio = analyzeAudio;
+analyzeAudio = function() {
+  _origAnalyzeAudio();
+  // After analysis, grab current displayed mood and log it
+  const moodText = document.getElementById('moodDisplay').textContent;
+  const mood = moodText.split(' ').pop();
+  const confText = document.getElementById('confDisplay').textContent;
+  const conf = parseInt(confText) / 100 || 0;
+  const pitchText = document.getElementById('pitchDisplay').textContent;
+  const energyText = document.getElementById('energyDisplay').textContent;
+  trackMoodEntry(mood, conf, {
+    pitch: parseFloat(pitchText) || 0,
+    energy: parseFloat(energyText) / 100 || 0,
+    speakingRate: 0
+  });
+};
+
+// ── Service Worker Registration ────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 </script>
 </body>
 </html>
