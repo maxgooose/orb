@@ -268,6 +268,7 @@ canvas#bg { position: fixed; top: 0; left: 0; z-index: 0; }
     <button class="ctrl-btn mic-btn" id="micBtn" title="Toggle microphone (Space)">🎤</button>
     <button class="ctrl-btn" id="demoBtn" title="Play demo (D)">▶</button>
     <a class="ctrl-btn" href="journal.html" title="Mood Journal (J)" style="text-decoration:none">📓</a>
+    <a class="ctrl-btn" href="analytics.html" title="Analytics (A)" style="text-decoration:none">📊</a>
     <button class="ctrl-btn" id="infoBtn" title="Project info (I)">ℹ</button>
     <button class="ctrl-btn" id="fsBtn" title="Fullscreen (F)">⛶</button>
   </div>
@@ -976,6 +977,7 @@ document.addEventListener('keydown', (e) => {
     case 'd': demoRunning ? stopDemo() : startDemo(); break;
     case 'i': infoPanel.classList.toggle('visible'); break;
     case 'j': window.location.href = 'journal.html'; break;
+    case 'a': window.location.href = 'analytics.html'; break;
     case 'f': fsBtn.click(); break;
     case 'escape':
       if (infoPanel.classList.contains('visible')) infoPanel.classList.toggle('visible');
