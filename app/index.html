@@ -269,6 +269,7 @@ canvas#bg { position: fixed; top: 0; left: 0; z-index: 0; }
     <button class="ctrl-btn" id="demoBtn" title="Play demo (D)">▶</button>
     <a class="ctrl-btn" href="journal.html" title="Mood Journal (J)" style="text-decoration:none">📓</a>
     <a class="ctrl-btn" href="analytics.html" title="Analytics (A)" style="text-decoration:none">📊</a>
+    <button class="ctrl-btn" id="aiBtn" title="Toggle AI responses (C)">🤖</button>
     <button class="ctrl-btn" id="infoBtn" title="Project info (I)">ℹ</button>
     <button class="ctrl-btn" id="fsBtn" title="Fullscreen (F)">⛶</button>
   </div>
@@ -673,9 +674,19 @@ const instruction = document.getElementById('instruction');
 const demoBtn = document.getElementById('demoBtn');
 const infoBtn = document.getElementById('infoBtn');
 const fsBtn = document.getElementById('fsBtn');
+const aiBtn = document.getElementById('aiBtn');
 const infoPanel = document.getElementById('infoPanel');
 const demoLabel = document.getElementById('demoLabel');
 const endCard = document.getElementById('endCard');
+
+// AI toggle
+function toggleAI() {
+  aiEnabled = !aiEnabled;
+  aiBtn.classList.toggle('active', aiEnabled);
+  showSpeech(aiEnabled ? 'AI responses on' : 'Static responses');
+}
+aiBtn.addEventListener('click', toggleAI);
+aiBtn.classList.add('active'); // on by default
 
 // Build meter
 for (let i = 0; i < 12; i++) {
@@ -855,19 +866,65 @@ function getTrend() {
   return 'stable';
 }
 
-function respondToMood(mood, confidence) {
+let aiEnabled = true;
+let aiPending = false;
+
+async function respondToMood(mood, confidence) {
   setMood(mood);
   const now = Date.now();
-  if (mood !== lastMood && now - lastSpeechTime > 5000) {
+  if (mood !== lastMood && now - lastSpeechTime > 5000 && !aiPending) {
+    // Try Claude API first, fall back to static messages
+    if (aiEnabled) {
+      aiPending = true;
+      try {
+        const recentMoods = moodHistory.slice(-5).map(m => m.mood).join(' → ');
+        const resp = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mood,
+            confidence,
+            energy: getEnergyLabel(),
+            trend: getTrend(),
+            history: recentMoods || null,
+          }),
+        });
+        if (resp.ok) {
+          const { message } = await resp.json();
+          if (message) {
+            showSpeech(message);
+            aiPending = false;
+            return;
+          }
+        }
+      } catch (e) {
+        // API unavailable — fall back silently
+      }
+      aiPending = false;
+    }
+    // Fallback: static messages
     const messages = MOOD_MESSAGES[mood];
     const msg = messages[Math.floor(Math.random() * messages.length)];
-    if (msg) {
-      speech.textContent = msg;
-      speech.classList.add('visible');
-      lastSpeechTime = now;
-      setTimeout(() => speech.classList.remove('visible'), 4000);
-    }
+    if (msg) showSpeech(msg);
   }
+}
+
+function showSpeech(msg) {
+  speech.textContent = msg;
+  speech.classList.add('visible');
+  lastSpeechTime = Date.now();
+  setTimeout(() => speech.classList.remove('visible'), 5000);
+}
+
+function getEnergyLabel() {
+  if (!analyser) return 'unknown';
+  analyser.getByteTimeDomainData(dataArray);
+  let sum = 0;
+  for (let i = 0; i < dataArray.length; i++) sum += Math.abs(dataArray[i] - 128);
+  const avg = sum / dataArray.length;
+  if (avg < 5) return 'low';
+  if (avg < 20) return 'medium';
+  return 'high';
 }
 
 function updateMeter() {
@@ -979,6 +1036,7 @@ document.addEventListener('keydown', (e) => {
     case 'j': window.location.href = 'journal.html'; break;
     case 'a': window.location.href = 'analytics.html'; break;
     case 'f': fsBtn.click(); break;
+    case 'c': toggleAI(); break;
     case 'escape':
       if (infoPanel.classList.contains('visible')) infoPanel.classList.toggle('visible');
       else if (endCard.classList.contains('visible')) endCard.classList.remove('visible');
